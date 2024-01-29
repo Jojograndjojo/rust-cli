@@ -1,0 +1,14 @@
+cli: {
+    main_command: rust-cli
+    first_sub_command: first-subcommand
+    second_sub_command: second-subcommand
+    first_sub_command_subcommand: second-level-subcommand
+    first_sub_command_first_flag: -- first-flag / -f
+    first_sub_command_second_flag: -- second-flag / -s
+
+    main_command -> first_sub_command
+    main_command -> second_sub_command
+    first_sub_command -> first_sub_command_subcommand
+    first_sub_command -> first_sub_command_first_flag
+    first_sub_command -> first_sub_command_second_flag
+}
