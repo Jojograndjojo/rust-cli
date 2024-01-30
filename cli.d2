@@ -1,14 +1,13 @@
+cli: CLI Structure
 cli: {
     main_command: rust-cli
-    first_sub_command: first-subcommand
-    second_sub_command: second-subcommand
-    first_sub_command_subcommand: second-level-subcommand
-    first_sub_command_first_flag: -- first-flag / -f
-    first_sub_command_second_flag: -- second-flag / -s
+    first_level_sub_command: first-level-subcommand
+    second_level_sub_command: second-level-subcommand
+    first_level_flag: --first-level-flag
+    second_level_flag: --second-level-flag
 
-    main_command -> first_sub_command
-    main_command -> second_sub_command
-    first_sub_command -> first_sub_command_subcommand
-    first_sub_command -> first_sub_command_first_flag
-    first_sub_command -> first_sub_command_second_flag
+    main_command -> first_level_sub_command
+    first_level_sub_command -> second_level_sub_command
+    first_level_sub_command -> first_level_flag
+    second_level_sub_command -> second_level_flag
 }
