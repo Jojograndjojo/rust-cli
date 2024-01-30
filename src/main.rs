@@ -15,7 +15,7 @@ fn run_cli(
     second_level: &impl SecondLevelTrait,
 ) -> Result<(), Box<dyn std::error::Error>> {
     match cli.command {
-        Commands::SecondLevelSubCommand(second_level_sub_command) => {
+        FirstLevelCommands::SecondLevelSubCommand(second_level_sub_command) => {
             match run_second_level_sub_command(second_level_sub_command, second_level) {
                 Ok(_) => Ok(()),
                 Err(err) => Err(format!("second level sub command error: {}", err))?,
@@ -49,11 +49,11 @@ fn run_second_level_sub_command(
 #[command(author, about, version, long_about = None)]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: FirstLevelCommands,
 }
 
 #[derive(Debug, Subcommand)]
-enum Commands {
+enum FirstLevelCommands {
     SecondLevelSubCommand(SecondLevelSubCommand),
 }
 
@@ -82,7 +82,7 @@ mod tests {
         };
 
         let cli = Cli {
-            command: Commands::SecondLevelSubCommand(second_level_sub_command),
+            command: FirstLevelCommands::SecondLevelSubCommand(second_level_sub_command),
         };
 
         let mut second_level_mock = MockSecondLevelTrait::new();
@@ -114,7 +114,7 @@ Options:
         };
 
         let cli = Cli {
-            command: Commands::SecondLevelSubCommand(second_level_sub_command),
+            command: FirstLevelCommands::SecondLevelSubCommand(second_level_sub_command),
         };
 
         let mut second_level_mock = MockSecondLevelTrait::new();
