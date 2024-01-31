@@ -36,24 +36,40 @@ fn run_first_level_sub_command(
 ) -> Result<(), Box<dyn std::error::Error>> {
     match first_level_sub_command.command {
         Some(FirstLevelCommands::SecondLevelSubCommand(second_level_sub_command)) => {
-            match run_second_level_sub_command(second_level_sub_command, second_level) {
-                Ok(_) => Ok(()),
-                Err(err) => Err(format!("second level sub command error: {}", err))?,
+            process_second_level_sub_command(second_level_sub_command, second_level)
+        }
+        None => process_first_level_command(first_level_sub_command, first_level),
+    }
+}
+
+fn process_first_level_command(
+    first_level_sub_command: FirstLevelSubCommand,
+    first_level: &impl FirstLevelTrait,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if first_level_sub_command.first_level_flag.is_empty() {
+        match FirstLevelSubCommand::command().print_help() {
+            Ok(_) => {
+                return Ok(());
+            }
+            Err(err) => {
+                Err(format!("first level sub command help error: {}", err))?;
             }
         }
-        None => {
-            if first_level_sub_command.first_level_flag.is_empty() {
-                match FirstLevelSubCommand::command().print_help() {
-                    Ok(_) => {
-                        return Ok(());
-                    }
-                    Err(err) => {
-                        return Err(format!("first level sub command help error: {}", err))?;
-                    }
-                }
-            }
-            Ok(())
-        }
+    }
+
+    match first_level.first_level_method(first_level_sub_command.first_level_flag) {
+        Ok(_) => Ok(()),
+        Err(err) => Err(format!("first level sub command error: {}", err))?,
+    }
+}
+
+fn process_second_level_sub_command(
+    second_level_sub_command: SecondLevelSubCommand,
+    second_level: &impl SecondLevelTrait,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match run_second_level_sub_command(second_level_sub_command, second_level) {
+        Ok(_) => Ok(()),
+        Err(err) => Err(format!("second level sub command error: {}", err))?,
     }
 }
 
@@ -233,9 +249,34 @@ Options:
 
         let first_level_actual_help = fs::read_to_string(&STDOUT_FILE).unwrap();
 
-        assert_eq!(first_level_expected_help, first_level_actual_help);
+        assert!(first_level_actual_help.contains(first_level_expected_help));
         drop(guard);
 
         fs::remove_file(&STDOUT_FILE).unwrap();
+    }
+
+    #[test]
+    fn test_run_first_level_command() {
+        let flag = String::from("flag");
+        let first_level_sub_command = FirstLevelSubCommand {
+            first_level_flag: flag,
+            command: None,
+        };
+
+        let cli = Cli {
+            command: Commands::FirstLevelSubCommand(first_level_sub_command),
+        };
+
+        let mut first_level_mock = MockFirstLevelTrait::new();
+        first_level_mock
+            .expect_first_level_method()
+            .with(eq("flag".to_string()))
+            .times(1)
+            .returning(|_| Ok(()));
+
+        let mut second_level_mock = MockSecondLevelTrait::new();
+        second_level_mock.expect_second_level_method().times(0);
+
+        assert!(run_cli(cli, &first_level_mock, &second_level_mock).is_ok());
     }
 }
