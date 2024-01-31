@@ -11,10 +11,10 @@ fn main() {
     let second_level = SecondLevel {};
     let cli: Cli = Cli::parse();
 
-    _ = run_cli(cli, &first_level, &second_level);
+    _ = execute_cli_commands(cli, &first_level, &second_level);
 }
 
-fn run_cli(
+fn execute_cli_commands(
     cli: Cli,
     first_level: &impl FirstLevelTrait,
     second_level: &impl SecondLevelTrait,
@@ -163,7 +163,7 @@ mod tests {
         let mut second_level_mock = MockSecondLevelTrait::new();
         second_level_mock.expect_second_level_method().times(0);
 
-        assert!(run_cli(cli, &first_level_mock, &second_level_mock).is_ok());
+        assert!(execute_cli_commands(cli, &first_level_mock, &second_level_mock).is_ok());
 
         let second_level_expected_help = r#"Usage: rust-cli --second-level-flag <SECOND_LEVEL_FLAG>
 
@@ -209,7 +209,7 @@ Options:
             .times(1)
             .returning(|_| Ok(()));
 
-        assert!(run_cli(cli, &first_level_mock, &second_level_mock).is_ok());
+        assert!(execute_cli_commands(cli, &first_level_mock, &second_level_mock).is_ok());
     }
 
     #[test]
@@ -233,7 +233,7 @@ Options:
         let mut second_level_mock = MockSecondLevelTrait::new();
         second_level_mock.expect_second_level_method().times(0);
 
-        assert!(run_cli(cli, &first_level_mock, &second_level_mock).is_ok());
+        assert!(execute_cli_commands(cli, &first_level_mock, &second_level_mock).is_ok());
 
         let first_level_expected_help =
             "Usage: rust-cli --first-level-flag <FIRST_LEVEL_FLAG> [COMMAND]
@@ -277,6 +277,6 @@ Options:
         let mut second_level_mock = MockSecondLevelTrait::new();
         second_level_mock.expect_second_level_method().times(0);
 
-        assert!(run_cli(cli, &first_level_mock, &second_level_mock).is_ok());
+        assert!(execute_cli_commands(cli, &first_level_mock, &second_level_mock).is_ok());
     }
 }
