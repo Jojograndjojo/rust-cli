@@ -7,12 +7,12 @@ use first_level::{FirstLevel, FirstLevelTrait};
 use mockall::predicate::*;
 use second_level::{SecondLevel, SecondLevelTrait};
 
-fn main() {
+fn main() -> Result<(), anyhow::Error> {
     let first_level = FirstLevel {};
     let second_level = SecondLevel {};
     let cli: Cli = Cli::parse();
 
-    _ = execute_cli_commands(cli, &first_level, &second_level);
+    execute_cli_commands(cli, &first_level, &second_level).context("execute cli commands error")
 }
 
 fn execute_cli_commands(
@@ -46,11 +46,13 @@ fn process_first_level_command(
     first_level: &impl FirstLevelTrait,
 ) -> Result<(), anyhow::Error> {
     if first_level_sub_command.first_level_flag.is_empty() {
-        _ = FirstLevelSubCommand::command().print_help()
-        .context("first level sub command help error");
+        _ = FirstLevelSubCommand::command()
+            .print_help()
+            .context("first level sub command help error");
         return Ok(());
     }
-    _ = first_level.first_level_method(first_level_sub_command.first_level_flag)
+    _ = first_level
+        .first_level_method(first_level_sub_command.first_level_flag)
         .context("first level sub command error");
     Ok(())
 }
@@ -69,12 +71,14 @@ fn run_second_level_sub_command(
     second_level: &impl SecondLevelTrait,
 ) -> Result<(), anyhow::Error> {
     if second_level_sub_command.second_level_flag.is_empty() {
-        _ = SecondLevelSubCommand::command().print_help()
+        _ = SecondLevelSubCommand::command()
+            .print_help()
             .context("second level sub command help error");
         return Ok(());
     }
 
-    _ = second_level.second_level_method(second_level_sub_command.second_level_flag)
+    _ = second_level
+        .second_level_method(second_level_sub_command.second_level_flag)
         .context("second level sub command error");
     Ok(())
 }
@@ -239,7 +243,6 @@ Options:
 
         fs::remove_file(&STDOUT_FILE).unwrap();
     }
-
 
     #[test]
     fn test_run_first_level_command() {
