@@ -1,6 +1,7 @@
 mod first_level;
 mod second_level;
 
+use anyhow::{Context, Result};
 use clap::{CommandFactory, Parser, Subcommand};
 use first_level::{FirstLevel, FirstLevelTrait};
 use mockall::predicate::*;
@@ -18,13 +19,11 @@ fn execute_cli_commands(
     cli: Cli,
     first_level: &impl FirstLevelTrait,
     second_level: &impl SecondLevelTrait,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), anyhow::Error> {
     match cli.command {
         Commands::FirstLevelSubCommand(first_level_sub_command) => {
-            match run_first_level_sub_command(first_level_sub_command, first_level, second_level) {
-                Ok(_) => Ok(()),
-                Err(err) => Err(format!("first level sub command error: {}", err))?,
-            }
+            run_first_level_sub_command(first_level_sub_command, first_level, second_level)
+                .context("first level sub command error")
         }
     }
 }
@@ -33,7 +32,7 @@ fn run_first_level_sub_command(
     first_level_sub_command: FirstLevelSubCommand,
     first_level: &impl FirstLevelTrait,
     second_level: &impl SecondLevelTrait,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), anyhow::Error> {
     match first_level_sub_command.command {
         Some(FirstLevelCommands::SecondLevelSubCommand(second_level_sub_command)) => {
             process_second_level_sub_command(second_level_sub_command, second_level)
@@ -45,53 +44,39 @@ fn run_first_level_sub_command(
 fn process_first_level_command(
     first_level_sub_command: FirstLevelSubCommand,
     first_level: &impl FirstLevelTrait,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), anyhow::Error> {
     if first_level_sub_command.first_level_flag.is_empty() {
-        match FirstLevelSubCommand::command().print_help() {
-            Ok(_) => {
-                return Ok(());
-            }
-            Err(err) => {
-                Err(format!("first level sub command help error: {}", err))?;
-            }
-        }
+        _ = FirstLevelSubCommand::command().print_help()
+        .context("first level sub command help error");
+        return Ok(());
     }
-
-    match first_level.first_level_method(first_level_sub_command.first_level_flag) {
-        Ok(_) => Ok(()),
-        Err(err) => Err(format!("first level sub command error: {}", err))?,
-    }
+    _ = first_level.first_level_method(first_level_sub_command.first_level_flag)
+        .context("first level sub command error");
+    Ok(())
 }
 
 fn process_second_level_sub_command(
     second_level_sub_command: SecondLevelSubCommand,
     second_level: &impl SecondLevelTrait,
-) -> Result<(), Box<dyn std::error::Error>> {
-    match run_second_level_sub_command(second_level_sub_command, second_level) {
-        Ok(_) => Ok(()),
-        Err(err) => Err(format!("second level sub command error: {}", err))?,
-    }
+) -> Result<(), anyhow::Error> {
+    _ = run_second_level_sub_command(second_level_sub_command, second_level)
+        .context("second level sub command error");
+    Ok(())
 }
 
 fn run_second_level_sub_command(
     second_level_sub_command: SecondLevelSubCommand,
     second_level: &impl SecondLevelTrait,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), anyhow::Error> {
     if second_level_sub_command.second_level_flag.is_empty() {
-        match SecondLevelSubCommand::command().print_help() {
-            Ok(_) => {
-                return Ok(());
-            }
-            Err(err) => {
-                Err(format!("second level sub command help error: {}", err))?;
-            }
-        }
+        _ = SecondLevelSubCommand::command().print_help()
+            .context("second level sub command help error");
+        return Ok(());
     }
 
-    match second_level.second_level_method(second_level_sub_command.second_level_flag) {
-        Ok(_) => Ok(()),
-        Err(err) => Err(format!("second level sub command error: {}", err))?,
-    }
+    _ = second_level.second_level_method(second_level_sub_command.second_level_flag)
+        .context("second level sub command error");
+    Ok(())
 }
 
 #[derive(Debug, Parser)]
@@ -254,6 +239,7 @@ Options:
 
         fs::remove_file(&STDOUT_FILE).unwrap();
     }
+
 
     #[test]
     fn test_run_first_level_command() {
