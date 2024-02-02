@@ -45,7 +45,8 @@ fn process_first_level_command(
     first_level_sub_command: FirstLevelSubCommand,
     first_level: &impl FirstLevelTrait,
 ) -> Result<(), anyhow::Error> {
-    if first_level_sub_command.first_level_flag.is_empty() {
+
+    if first_level_sub_command.first_level_flag.is_none() && first_level_sub_command.command.is_none() {
         _ = FirstLevelSubCommand::command()
             .print_help()
             .context("first level sub command help error");
@@ -104,7 +105,7 @@ enum FirstLevelCommands {
 struct FirstLevelSubCommand {
     /// First level flag
     #[arg(short, long)]
-    first_level_flag: String,
+    first_level_flag: Option<String>,
     #[command(subcommand)]
     command: Option<FirstLevelCommands>,
 }
@@ -136,7 +137,7 @@ mod tests {
         };
 
         let first_level_sub_command = FirstLevelSubCommand {
-            first_level_flag: String::from(""),
+            first_level_flag: None,
             command: Some(FirstLevelCommands::SecondLevelSubCommand(
                 second_level_sub_command,
             )),
@@ -178,7 +179,7 @@ Options:
         };
 
         let first_level_sub_command = FirstLevelSubCommand {
-            first_level_flag: String::from(""),
+            first_level_flag: None,
             command: Some(FirstLevelCommands::SecondLevelSubCommand(
                 second_level_sub_command,
             )),
@@ -203,12 +204,11 @@ Options:
 
     #[test]
     #[serial]
-    fn test_run_first_level_command_print_help_when_first_level_sub_command_flag_is_empty() {
+    fn test_run_first_level_command_print_help_when_first_level_sub_command_flag_and_command_are_none() {
         let guard = StdoutOverride::override_file(&STDOUT_FILE).unwrap();
-        let flag = String::from("");
 
         let first_level_sub_command = FirstLevelSubCommand {
-            first_level_flag: flag,
+            first_level_flag: None,
             command: None,
         };
 
@@ -225,7 +225,7 @@ Options:
         assert!(execute_cli_commands(cli, &first_level_mock, &second_level_mock).is_ok());
 
         let first_level_expected_help =
-            "Usage: rust-cli --first-level-flag <FIRST_LEVEL_FLAG> [COMMAND]
+            "Usage: rust-cli [OPTIONS] [COMMAND]
 
 Commands:
   second-level-sub-command\u{20}\u{20}
@@ -238,7 +238,11 @@ Options:
 
         let first_level_actual_help = fs::read_to_string(&STDOUT_FILE).unwrap();
 
-        assert!(first_level_actual_help.contains(first_level_expected_help));
+
+        assert!(
+            first_level_actual_help
+            .contains(
+                first_level_expected_help));
         drop(guard);
 
         fs::remove_file(&STDOUT_FILE).unwrap();
@@ -248,7 +252,7 @@ Options:
     fn test_run_first_level_command() {
         let flag = String::from("flag");
         let first_level_sub_command = FirstLevelSubCommand {
-            first_level_flag: flag,
+            first_level_flag: Some(flag),
             command: None,
         };
 
@@ -259,7 +263,7 @@ Options:
         let mut first_level_mock = MockFirstLevelTrait::new();
         first_level_mock
             .expect_first_level_method()
-            .with(eq("flag".to_string()))
+            .with(eq(Some("flag".to_string())))
             .times(1)
             .returning(|_| Ok(()));
 

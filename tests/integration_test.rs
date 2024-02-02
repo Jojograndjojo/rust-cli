@@ -35,3 +35,17 @@ fn test_run_first_level_command() {
         .success()
         .stdout(predicate::str::contains(expected_output));
 }
+
+#[test]
+fn test_run_second_level_command() {
+    let expected_output = "Here is the second flag value: ola\n";
+
+    let mut cmd = Command::cargo_bin("rust-cli").unwrap();
+    cmd.arg("first-level-sub-command");
+    cmd.arg("second-level-sub-command");
+    cmd.arg("--second-level-flag");
+    cmd.arg("ola");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains(expected_output));
+}
