@@ -13,7 +13,7 @@ impl FirstLevelTrait for FirstLevel {
             Some(first_level_flag) => {
                 println!("Here is the first flag value: {}", first_level_flag);
                 Ok(())
-            },
+            }
             None => anyhow::bail!("first level flag is empty"),
         }
     }
