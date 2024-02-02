@@ -18,3 +18,22 @@ impl FirstLevelTrait for FirstLevel {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_first_level_method() {
+        let first_level = FirstLevel {};
+        let first_level_flag = Some("hello".to_string());
+        assert!(first_level.first_level_method(first_level_flag).is_ok());
+    }
+
+    #[test]
+    fn test_first_level_method_with_empty_flag() {
+        let first_level = FirstLevel {};
+        let first_level_flag = None;
+        assert!(first_level.first_level_method(first_level_flag).is_err());
+    }
+}
