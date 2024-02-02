@@ -1,0 +1,31 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+    test:
+      name: Rust cli
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+        - name: Set up Rust
+          uses: actions-rs/toolchain@v1
+          with:
+            toolchain: stable
+        - name: Unit tests
+          uses: actions-rs/cargo@v1
+          with:
+            command: test
+            args: --lib
+        - name: Integration tests
+          uses: actions-rs/cargo@v1
+          with:
+            command: test
+            args: --test integration_test
+        - name: Run cargo-tarpaulin
+          uses: actions-rs/tarpaulin@v0.1
+          with:
+            version: '0.15.0'
+            args: '-- --test-threads 1'
