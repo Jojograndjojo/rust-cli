@@ -72,7 +72,7 @@ fn run_second_level_sub_command(
     second_level_sub_command: SecondLevelSubCommand,
     second_level: &impl SecondLevelTrait,
 ) -> Result<(), anyhow::Error> {
-    if second_level_sub_command.second_level_flag.is_empty() {
+    if second_level_sub_command.second_level_flag.is_none() {
         _ = SecondLevelSubCommand::command()
             .print_help()
             .context("second level sub command help error");
@@ -115,7 +115,7 @@ struct FirstLevelSubCommand {
 struct SecondLevelSubCommand {
     /// Second level flag
     #[arg(short, long)]
-    second_level_flag: String,
+    second_level_flag: Option<String>,
 }
 
 #[cfg(test)]
@@ -131,10 +131,10 @@ mod tests {
 
     #[test]
     #[serial]
-    fn test_run_second_level_sub_command_print_help_when_second_level_flag_is_empty() {
+    fn test_run_second_level_sub_command_print_help_when_second_level_flag_is_none() {
         let guard = StdoutOverride::override_file(STDOUT_FILE).unwrap();
         let second_level_sub_command = SecondLevelSubCommand {
-            second_level_flag: String::from(""),
+            second_level_flag: None,
         };
 
         let first_level_sub_command = FirstLevelSubCommand {
@@ -156,7 +156,7 @@ mod tests {
 
         assert!(execute_cli_commands(cli, &first_level_mock, &second_level_mock).is_ok());
 
-        let second_level_expected_help = r#"Usage: rust-cli --second-level-flag <SECOND_LEVEL_FLAG>
+        let second_level_expected_help = r#"Usage: rust-cli [OPTIONS]
 
 Options:
   -s, --second-level-flag <SECOND_LEVEL_FLAG>  Second level flag
@@ -176,7 +176,7 @@ Options:
     fn test_run_second_level_sub_command() {
         let flag = String::from("flag");
         let second_level_sub_command = SecondLevelSubCommand {
-            second_level_flag: flag,
+            second_level_flag: Some(flag),
         };
 
         let first_level_sub_command = FirstLevelSubCommand {
@@ -196,7 +196,7 @@ Options:
         let mut second_level_mock = MockSecondLevelTrait::new();
         second_level_mock
             .expect_second_level_method()
-            .with(eq("flag".to_string()))
+            .with(eq(Some("flag".to_string())))
             .times(1)
             .returning(|_| Ok(()));
 
